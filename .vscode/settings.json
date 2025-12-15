@@ -1,0 +1,4 @@
+{
+    "workbench.externalBrowser": "/usr/bin/chromium",
+    "simpleBrowser.focusLockIndicator.enabled": false
+}
