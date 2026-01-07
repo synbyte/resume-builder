@@ -24,6 +24,7 @@ export default function ResumeEditor({ id, initialData, title: initialTitle }: R
     const [data, setData] = useState<ResumeData>(initialData);
     const [title, setTitle] = useState(initialTitle);
     const [isSaving, setIsSaving] = useState(false);
+    const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
     // Initialize template from saved selection or default
     const [template, setTemplate] = useState(initialData.selectedTemplate || 'Modern');
@@ -133,6 +134,18 @@ export default function ResumeEditor({ id, initialData, title: initialTitle }: R
     const resumeRef = useRef<HTMLDivElement>(null);
     const [isDownloading, setIsDownloading] = useState(false);
 
+    // Auto-save effect (debounced)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            // Only auto-save if there's been actual changes
+            if (JSON.stringify(data) !== JSON.stringify(initialData)) {
+                handleSave();
+            }
+        }, 2000); // 2 seconds after last change
+
+        return () => clearTimeout(timer);
+    }, [data, designSettings, template, currentLayout]); // Auto-save on content changes
+
     const handleSave = async () => {
         setIsSaving(true);
         try {
@@ -159,6 +172,7 @@ export default function ResumeEditor({ id, initialData, title: initialTitle }: R
                 selectedTemplate: template
             };
             await updateResume(id, dataToSave);
+            setLastSaved(new Date());
         } catch (error) {
             console.error('Failed to save resume:', error);
             alert('Failed to save resume');
@@ -408,6 +422,11 @@ export default function ResumeEditor({ id, initialData, title: initialTitle }: R
                             <Save className="w-3.5 h-3.5 mr-2" />
                             {isSaving ? 'Saving...' : 'Save Changes'}
                         </button>
+                        {lastSaved && !isSaving && (
+                            <span className="text-[10px] text-slate-400 font-medium ml-2">
+                                Saved {new Date(lastSaved).toLocaleTimeString()}
+                            </span>
+                        )}
                     </div>
                 </div>
             </header>

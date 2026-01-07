@@ -17,32 +17,47 @@ async function getUserId() {
 }
 
 export async function getResumes() {
-    return await prisma.resumes.findMany({
-        orderBy: { updated_at: 'desc' },
-    });
+    try {
+        return await prisma.resumes.findMany({
+            orderBy: { updated_at: 'desc' },
+        });
+    } catch (error) {
+        console.error('Failed to fetch resumes:', error);
+        throw new Error('Failed to load resumes. Please try again.');
+    }
 }
 
 export async function createResume(title: string, template?: string) {
-    const userId = await getUserId();
+    try {
+        const userId = await getUserId();
 
-    const resume = await prisma.resumes.create({
-        data: {
-            user_id: userId,
-            title: title || 'Untitled Resume',
-            content: template ? { selectedTemplate: template } : {},
-            status: 'draft',
-        },
-    });
+        const resume = await prisma.resumes.create({
+            data: {
+                user_id: userId,
+                title: title || 'Untitled Resume',
+                content: template ? { selectedTemplate: template } : {},
+                status: 'draft',
+            },
+        });
 
-    revalidatePath('/dashboard');
-    return resume.id;
+        revalidatePath('/dashboard');
+        return resume.id;
+    } catch (error) {
+        console.error('Failed to create resume:', error);
+        throw new Error('Failed to create resume. Please try again.');
+    }
 }
 
 export async function deleteResume(id: string) {
-    await prisma.resumes.delete({
-        where: { id },
-    });
-    revalidatePath('/dashboard');
+    try {
+        await prisma.resumes.delete({
+            where: { id },
+        });
+        revalidatePath('/dashboard');
+    } catch (error) {
+        console.error('Failed to delete resume:', error);
+        throw new Error('Failed to delete resume. Please try again.');
+    }
 }
 
 export async function renameResume(id: string, title: string) {
