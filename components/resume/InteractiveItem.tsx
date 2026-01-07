@@ -12,20 +12,22 @@ interface InteractiveItemProps {
 }
 
 export default function InteractiveItem({ id, children, className = '' }: InteractiveItemProps) {
-    const { updateLayout, offsets } = useResumeLayout();
-    const marginTop = offsets[id] || 0;
+    const { updateLayout, offsets, manualOffsets } = useResumeLayout();
+    const totalMargin = offsets[id] || 0;
+    const manualMargin = manualOffsets[id] || 0;
     const [isHovered, setIsHovered] = useState(false);
     const itemRef = useRef<HTMLDivElement>(null);
     const [coords, setCoords] = useState({ top: 0, left: 0, height: 0 });
     const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // State for manual input
-    const [inputValue, setInputValue] = useState(marginTop.toString());
+    // State for manual input reflects the total visual space
+    const [inputValue, setInputValue] = useState(totalMargin.toString());
 
-    // Sync input value when proper prop changes (e.g. from arrows)
+    // Sync input value when prop changes
     useEffect(() => {
-        setInputValue(marginTop.toString());
-    }, [marginTop]);
+        setInputValue(totalMargin.toString());
+    }, [totalMargin]);
 
     // Simplified hover handling with minimal delay for safety
     const handleMouseEnter = () => {
@@ -45,18 +47,20 @@ export default function InteractiveItem({ id, children, className = '' }: Intera
 
     const handleMoveDown = (e: React.MouseEvent) => {
         e.stopPropagation();
-        updateLayout(id, { marginTop: marginTop + 20 });
+        // Sticky initialization: if manual is 0 but total > 0, start from total
+        const base = (manualMargin === 0 && totalMargin > 0) ? totalMargin : manualMargin;
+        updateLayout(id, { marginTop: base + 20 });
     };
 
     const handleMoveUp = (e: React.MouseEvent) => {
         e.stopPropagation();
-        const newMargin = Math.max(0, marginTop - 20);
-        updateLayout(id, { marginTop: newMargin });
+        // Sticky initialization: if manual is 0 but total > 0, start from total
+        const base = (manualMargin === 0 && totalMargin > 0) ? totalMargin : manualMargin;
+        updateLayout(id, { marginTop: base - 20 });
     };
-
     const handlePageBreak = (e: React.MouseEvent) => {
         e.stopPropagation();
-        updateLayout(id, { marginTop: marginTop + 400 });
+        updateLayout(id, { marginTop: manualMargin + 400 });
     };
 
     const handleReset = (e: React.MouseEvent) => {
@@ -95,7 +99,7 @@ export default function InteractiveItem({ id, children, className = '' }: Intera
             className={`group/item relative ${className} break-inside-avoid transition-all duration-200 hover:bg-gray-50/50 rounded-sm hover:ring-1 hover:ring-gray-200`}
             data-break-inside="avoid"
             data-item-id={id}
-            style={{ marginTop: marginTop }}
+            style={{ marginTop: totalMargin }}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
@@ -120,33 +124,35 @@ export default function InteractiveItem({ id, children, className = '' }: Intera
                     >
                         <button
                             onClick={handleMoveUp}
-                            className="p-1.5 hover:bg-gray-100 text-gray-600 rounded disabled:opacity-30"
-                            title="Move Up"
-                            disabled={marginTop === 0}
+                            className="p-1.5 hover:bg-gray-100 text-gray-600 rounded"
+                            title="Move Up (Remove Space)"
                         >
                             <ArrowUp size={14} />
                         </button>
                         <input
-                            className="w-8 text-[10px] font-mono text-center text-gray-500 bg-transparent outline-none border-b border-transparent hover:border-gray-200 focus:border-blue-300 p-0"
+                            className="w-10 text-[10px] font-mono text-center text-gray-500 bg-transparent outline-none border-b border-transparent hover:border-gray-200 focus:border-blue-300 p-0"
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     const val = parseInt(inputValue);
-                                    if (!isNaN(val) && val >= 0) {
-                                        updateLayout(id, { marginTop: val });
+                                    if (!isNaN(val)) {
+                                        // Calculate what the manual offset needs to be to reach this total
+                                        const autoOffset = totalMargin - manualMargin;
+                                        updateLayout(id, { marginTop: val - autoOffset });
                                         (e.target as HTMLInputElement).blur();
                                     } else {
-                                        setInputValue(marginTop.toString());
+                                        setInputValue(totalMargin.toString());
                                     }
                                 }
                             }}
                             onBlur={() => {
                                 const val = parseInt(inputValue);
-                                if (!isNaN(val) && val >= 0) {
-                                    updateLayout(id, { marginTop: val });
+                                if (!isNaN(val)) {
+                                    const autoOffset = totalMargin - manualMargin;
+                                    updateLayout(id, { marginTop: val - autoOffset });
                                 } else {
-                                    setInputValue(marginTop.toString());
+                                    setInputValue(totalMargin.toString());
                                 }
                             }}
                         />
@@ -168,7 +174,7 @@ export default function InteractiveItem({ id, children, className = '' }: Intera
                             <FileInput size={14} />
                         </button>
 
-                        {marginTop > 0 && (
+                        {manualMargin !== 0 && (
                             <>
                                 <div className="w-full h-px bg-gray-100 my-0.5" />
                                 <button
@@ -188,14 +194,15 @@ export default function InteractiveItem({ id, children, className = '' }: Intera
             {/* Content */}
             {children}
 
-            {/* Visual Indicator of added space */}
-            {marginTop > 0 && (
+            {/* Visual Indicator of the total gap (Manual + Auto) */}
+            {totalMargin > 0 && (
                 <div
+                    data-pdf-ignore
                     className="absolute left-0 right-0 -top-[1px] border-l-2 border-t-2 border-r-2 border-dashed border-blue-100 bg-blue-50/10 pointer-events-none print:hidden transition-all"
-                    style={{ height: marginTop, top: -marginTop }}
+                    style={{ height: totalMargin, top: -totalMargin }}
                 >
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-blue-300 font-mono">
-                        {marginTop}px spacer
+                        {totalMargin}px spacer
                     </div>
                 </div>
             )}

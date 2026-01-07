@@ -1,8 +1,7 @@
 'use client';
 
-import { ResumeData } from '@/lib/types';
 import { deleteResume } from '@/lib/actions';
-import { Trash2, FileText, Edit, Clock } from 'lucide-react';
+import { Trash2, FileText, ExternalLink, Clock, FileEdit, MoreVertical } from 'lucide-react';
 import Link from 'next/link';
 import { useTransition } from 'react';
 
@@ -18,7 +17,7 @@ export default function ResumeCard({ id, title, updatedAt }: ResumeCardProps) {
     const handleDelete = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (confirm('Are you sure you want to delete this resume?')) {
+        if (confirm('Are you sure you want to delete this document from the repository?')) {
             startTransition(async () => {
                 await deleteResume(id);
             });
@@ -27,14 +26,15 @@ export default function ResumeCard({ id, title, updatedAt }: ResumeCardProps) {
 
     const formatDate = (date: Date) => {
         const now = new Date();
-        const diffTime = Math.abs(now.getTime() - new Date(date).getTime());
+        const updatedAtDate = new Date(date);
+        const diffTime = Math.abs(now.getTime() - updatedAtDate.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-        if (diffDays === 0) return 'Today';
+        if (diffDays === 0) return 'Just now';
         if (diffDays === 1) return 'Yesterday';
         if (diffDays < 7) return `${diffDays} days ago`;
 
-        return new Date(date).toLocaleDateString(undefined, {
+        return updatedAtDate.toLocaleDateString(undefined, {
             month: 'short',
             day: 'numeric',
             year: 'numeric'
@@ -43,57 +43,59 @@ export default function ResumeCard({ id, title, updatedAt }: ResumeCardProps) {
 
     return (
         <Link href={`/resume/${id}`} className="block group">
-            <div className="relative bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all duration-300 overflow-hidden h-64 flex flex-col">
-                {/* Gradient background with pattern */}
-                <div className="relative h-36 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center overflow-hidden">
-                    {/* Animated gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                    {/* Grid pattern */}
-                    <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
-
-                    {/* Icon */}
-                    <div className="relative z-10 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                        <div className="bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/20 shadow-lg">
-                            <FileText className="w-10 h-10 text-white" strokeWidth={1.5} />
-                        </div>
+            <div className="relative bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-200 flex flex-col h-full min-h-[180px]">
+                {/* Status Bar */}
+                <div className="px-4 py-2 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-xl">
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Document ID: {id.slice(0, 8)}</span>
                     </div>
-
-                    {/* Shine effect on hover */}
-                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                 </div>
 
-                {/* Content */}
-                <div className="flex-1 p-5 flex flex-col justify-between bg-white">
-                    <div>
-                        <h3 className="font-bold text-lg leading-tight text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-2">
-                            {title}
-                        </h3>
-                        <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>{formatDate(updatedAt)}</span>
+                {/* Main Body */}
+                <div className="p-4 flex-1">
+                    <div className="flex items-start gap-4">
+                        <div className="shrink-0 w-12 h-14 bg-slate-100 rounded-lg flex items-center justify-center border border-slate-200 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors">
+                            <FileText className="w-6 h-6 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate text-sm sm:text-base mb-1">
+                                {title}
+                            </h3>
+                            <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>Modified {formatDate(updatedAt)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Action Footer */}
+                <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between mt-auto">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1 text-[11px] font-bold text-blue-600 uppercase tracking-tighter">
+                            <FileEdit className="w-3.5 h-3.5" />
+                            <span>Edit Draft</span>
                         </div>
                     </div>
 
-                    {/* Action buttons */}
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-100 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
-                        <div className="flex items-center gap-1.5 text-sm font-medium text-blue-600">
-                            <Edit className="w-4 h-4" />
-                            <span>Edit Resume</span>
-                        </div>
+                    <div className="flex items-center gap-1">
                         <button
                             onClick={handleDelete}
                             disabled={isPending}
-                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Delete resume"
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all disabled:opacity-50"
+                            title="Delete Resume"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
+                        <div className="p-1.5 text-slate-300">
+                            <ExternalLink className="w-4 h-4" />
+                        </div>
                     </div>
                 </div>
 
-                {/* Hover border glow */}
-                <div className="absolute inset-0 rounded-2xl ring-2 ring-blue-500/0 group-hover:ring-blue-500/20 transition-all duration-300 pointer-events-none" />
+                {/* Interactive Overlay */}
+                <div className="absolute inset-0 rounded-xl bg-blue-600/[0.02] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity" />
             </div>
         </Link>
     );

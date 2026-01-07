@@ -112,7 +112,10 @@ export default function PagedPreviewWrapper({
                     pageEnd += pNCapacity;
                 }
 
-                if (effectiveBottom > pageEnd && height < pNCapacity) {
+                const id = el.getAttribute('data-item-id');
+                const hasManualOffset = id && layout[id]?.marginTop !== undefined && layout[id].marginTop !== 0;
+
+                if (effectiveBottom > pageEnd && height < pNCapacity && !hasManualOffset) {
                     // Crosses boundary -> Shift to next page
                     const moveAmount = pageEnd - effectiveTop;
 
@@ -123,12 +126,10 @@ export default function PagedPreviewWrapper({
                         right: relativeRight
                     });
 
-                    const id = el.getAttribute('data-item-id');
                     if (id) {
                         newOffsets[id] = inheritedShift + moveAmount;
                     }
                 } else if (inheritedShift > 0) {
-                    const id = el.getAttribute('data-item-id');
                     if (id) {
                         newOffsets[id] = inheritedShift;
                     }
@@ -155,10 +156,10 @@ export default function PagedPreviewWrapper({
         observer.observe(measureRef.current);
 
         return () => observer.disconnect();
-    }, [layout]); // Only re-setup if layout changes (which affects structure/manual offsets)
+    }, [layout, children, designSettings]); // Re-calculate when layout, content, or design changes
 
     return (
-        <div className="flex flex-col gap-8 items-center bg-gray-100 p-8 print:p-0 print:bg-white print:gap-0 print:block">
+        <div className="flex flex-col gap-8 items-center print:bg-white print:gap-0 print:block">
             {/* Hidden measurement div - clean render without offsets */}
             <div
                 ref={measureRef}
@@ -169,7 +170,12 @@ export default function PagedPreviewWrapper({
                     We pass MANUAL offsets here so the measurement sees the user's added spacing.
                     This allows the "Auto-Breaker" to respect user's manual spacing and push things FURTHER if needed.
                 */}
-                <ResumeLayoutProvider offsets={manualOffsets} updateLayout={() => { }} designSettings={designSettings}>
+                <ResumeLayoutProvider
+                    offsets={manualOffsets}
+                    manualOffsets={manualOffsets}
+                    updateLayout={() => { }}
+                    designSettings={designSettings}
+                >
                     {children}
                 </ResumeLayoutProvider>
             </div>
@@ -192,6 +198,7 @@ export default function PagedPreviewWrapper({
                 return (
                     <div
                         key={pageIndex}
+                        data-resume-page
                         className={`bg-white shadow-lg w-[210mm] h-[297mm] relative ${className} print:shadow-none print:m-0 print:w-[210mm] print:h-[297mm]`}
                         style={{ breakAfter: pageIndex < pageCount - 1 ? 'page' : 'auto' }}
                     >
@@ -210,7 +217,12 @@ export default function PagedPreviewWrapper({
                                 }}
                             >
                                 <div className="p-8">
-                                    <ResumeLayoutProvider offsets={finalVisibleOffsets} updateLayout={updateLayout} designSettings={designSettings}>
+                                    <ResumeLayoutProvider
+                                        offsets={finalVisibleOffsets}
+                                        manualOffsets={manualOffsets}
+                                        updateLayout={updateLayout}
+                                        designSettings={designSettings}
+                                    >
                                         {children}
                                     </ResumeLayoutProvider>
                                 </div>

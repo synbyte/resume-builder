@@ -75,7 +75,7 @@ export default function ElegantTemplate({ data }: { data: ResumeData }) {
                             <div className="flex-grow h-px bg-slate-200"></div>
                         </div>
                     </InteractiveItem>
-                    <p className="textAlign-center leading-relaxed text-slate-600 text-center italic" style={{ fontSize: `${baseFontSize + 1}px` }}>
+                    <p className="leading-relaxed text-slate-600 text-center italic" style={{ fontSize: `${baseFontSize + 1}px` }}>
                         &ldquo;{summary}&rdquo;
                     </p>
                 </div>

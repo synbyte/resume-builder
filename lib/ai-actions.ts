@@ -89,3 +89,46 @@ export async function improveSummary(currentText: string) {
         return currentText; // Return original if failed
     }
 }
+
+export async function processResumeEdit(prompt: string, currentData: any) {
+    const systemPrompt = `You are an expert resume designer. You help users modify their resume by interpreting natural language commands.
+You will receive the current ResumeData object and a user request.
+Your task is to return a JSON object that contains ONLY THE UPDATED fields of the ResumeData.
+
+The ResumeData structure includes:
+- personalInfo: { fullName, email, phone, linkedin, website }
+- summary: string
+- experience: Array<{ id, company, title, startDate, endDate, duties }>
+- skills: Array<string>
+- education: Array<{ id, school, degree, year }>
+- designSettings: { fontFamily, baseFontSize, primaryColor, headingSizes: { h1, h2, h3 }, lineHeight }
+- selectedTemplate: string (Available: 'Modern', 'Classic', 'Minimal', 'Professional', 'Creative', 'Elegant', 'Tech', 'Timeline', 'Compact', 'Bold')
+- layout: Record<string, { marginTop: number, forcedBreak: boolean }> where keys are element IDs.
+
+Guidelines:
+1. ONLY return the fields that have changed. 
+2. For top-level objects like 'personalInfo' or 'designSettings', you can return only the sub-fields that changed.
+3. For arrays like 'experience', 'education', or 'skills', return the ENTIRE updated array if any item within it changed.
+4. For the 'layout' record, return only the specific keys that were updated.
+5. If the user says 'make font smaller', reduce baseFontSize by 1 (min 10).
+6. If the user says 'make font larger', increase baseFontSize by 1 (max 18).
+7. If the user says 'change color to X', update primaryColor.
+8. If the user says 'add spacing above X', update the marginTop in the layout object for that ID.
+
+IMPORTANT: Strictly return ONLY raw JSON. No markdown code blocks.`;
+
+    try {
+        const response = await genAI.models.generateContent({
+            model: 'gemini-2.0-flash',
+            contents: `${systemPrompt}\n\nCurrent Resume Data: ${JSON.stringify(currentData)}\n\nUser Request: "${prompt}"`,
+        });
+
+        const text = response.text || '';
+        // Clean up text just in case AI adds markdown
+        const cleanedText = text.replace(/```json\n?|\n?```/g, '').trim();
+        return JSON.parse(cleanedText);
+    } catch (error) {
+        console.error('AI Edit Error:', error);
+        throw error;
+    }
+}

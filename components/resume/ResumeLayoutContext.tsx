@@ -28,12 +28,14 @@ export const defaultDesignSettings: DesignSettings = {
 
 interface ResumeLayoutContextType {
     offsets: Record<string, number>;
+    manualOffsets: Record<string, number>;
     updateLayout: (id: string, changes: { marginTop?: number; forcedBreak?: boolean }) => void;
     designSettings: DesignSettings;
 }
 
 const ResumeLayoutContext = createContext<ResumeLayoutContextType>({
     offsets: {},
+    manualOffsets: {},
     updateLayout: () => { },
     designSettings: defaultDesignSettings,
 });
@@ -43,16 +45,18 @@ export const useResumeLayout = () => useContext(ResumeLayoutContext);
 export const ResumeLayoutProvider = ({
     children,
     offsets,
+    manualOffsets = {},
     updateLayout,
     designSettings = defaultDesignSettings
 }: {
     children: React.ReactNode;
     offsets: Record<string, number>;
+    manualOffsets?: Record<string, number>;
     updateLayout: (id: string, changes: { marginTop?: number; forcedBreak?: boolean }) => void;
     designSettings?: DesignSettings;
 }) => {
     return (
-        <ResumeLayoutContext.Provider value={{ offsets, updateLayout, designSettings }}>
+        <ResumeLayoutContext.Provider value={{ offsets, manualOffsets, updateLayout, designSettings }}>
             {children}
         </ResumeLayoutContext.Provider>
     );

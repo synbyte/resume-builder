@@ -3,7 +3,7 @@
 import { ResumeData } from '@/lib/types';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { LayoutTemplate, Check, X } from 'lucide-react';
+import { LayoutTemplate, Check, X, Info, Layers } from 'lucide-react';
 
 // Import all templates
 import ModernTemplate from './Templates/Modern';
@@ -76,7 +76,6 @@ export default function TemplateSelector({ currentTemplate, onSelect }: Template
         setIsOpen(false);
     };
 
-    // Close on escape key
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
             if (e.key === 'Escape') setIsOpen(false);
@@ -85,7 +84,6 @@ export default function TemplateSelector({ currentTemplate, onSelect }: Template
         return () => window.removeEventListener('keydown', handleEsc);
     }, []);
 
-    // Prevent scrolling when open
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -99,74 +97,63 @@ export default function TemplateSelector({ currentTemplate, onSelect }: Template
         <>
             <button
                 onClick={() => setIsOpen(true)}
-                className="flex items-center px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/50 rounded-md transition-all gap-2"
+                className="flex items-center px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-300 bg-white rounded-lg transition-all gap-2 shadow-sm"
             >
-                <LayoutTemplate size={16} />
-                <span className="hidden sm:inline">Change Template</span>
-                <span className="sm:hidden">Template</span>
+                <Layers className="w-3.5 h-3.5 text-blue-600" />
+                <span className="uppercase tracking-widest">Change Template</span>
             </button>
 
             {isOpen && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 md:p-8">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-12">
                     {/* Backdrop */}
                     <div
-                        className="absolute inset-0 bg-gradient-to-br from-slate-900/60 via-blue-900/60 to-indigo-900/60 backdrop-blur-md animate-in fade-in duration-200"
+                        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200"
                         onClick={() => setIsOpen(false)}
                     />
 
                     {/* Modal Content */}
-                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ">
-                        {/* Header with gradient */}
-                        <div className="relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600" />
-                            <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
-
-                            <div className="relative flex items-center justify-between px-6 py-5 mb-28 text-white">
-                                <div>
-                                    <h2 className="text-2xl font-bold">Choose a Template</h2>
-                                    <p className="text-blue-100 text-sm mt-1">Select the perfect design for your resume</p>
+                    <div className="relative bg-white border border-slate-200 shadow-2xl w-full max-w-7xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 rounded-xl">
+                        {/* Internal Style Header */}
+                        <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center text-white">
+                                    <LayoutTemplate className="w-5 h-5 text-blue-400" />
                                 </div>
-                                <button
-                                    onClick={() => setIsOpen(false)}
-                                    className="p-2   hover:bg-white/10 rounded-xl transition-all text-white/90 hover:text-white backdrop-blur-sm"
-                                >
-                                    <X size={20} />
-                                </button>
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-900 leading-none">Choose a Template</h2>
+                                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">Select the perfect design for your resume</p>
+                                </div>
                             </div>
-
-                            {/* Wave separator */}
-                            <div className="absolute bottom-0 left-0 right-0">
-                                <svg className="w-full h-6 fill-white" viewBox="0 0 1200 120" preserveAspectRatio="none" style={{ transform: 'scaleY(-1)' }}>
-                                    <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" />
-                                </svg>
-                            </div>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="p-2 hover:bg-slate-200 rounded-lg transition-all text-slate-400 hover:text-slate-600"
+                            >
+                                <X size={20} />
+                            </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 pb-10">
+                        <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50/50">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                                 {TEMPLATES.map((t) => (
                                     <div
                                         key={t.id}
-                                        className={`group relative flex flex-col gap-3 cursor-pointer transition-all duration-200 hover:-translate-y-1 ${currentTemplate === t.id ? 'translate-y-0' : ''}`}
+                                        className="group flex flex-col gap-3 cursor-pointer"
                                         onClick={() => handleSelect(t.id)}
                                     >
                                         <div
-                                            className={`relative aspect-[210/297] bg-white rounded-xl shadow-md border overflow-hidden transition-all duration-200
+                                            className={`relative aspect-[210/297] bg-white rounded-lg border overflow-hidden transition-all duration-200 shadow-sm
                                                 ${currentTemplate === t.id
-                                                    ? 'ring-4 ring-blue-500 ring-offset-2 shadow-2xl shadow-blue-500/30 border-blue-500'
-                                                    : 'border-slate-200 hover:shadow-xl hover:shadow-blue-500/20 hover:border-blue-300'
+                                                    ? 'ring-2 ring-blue-600 border-blue-600 scale-[1.02] shadow-xl'
+                                                    : 'border-slate-200 hover:border-slate-400 hover:shadow-md'
                                                 }`}
                                         >
-                                            {/* Container sized to the scaled dimensions */}
+                                            {/* Preview Container */}
                                             <div className="absolute inset-0 overflow-hidden">
-                                                {/* Scaled Preview - transform origin at top-left */}
                                                 <div
-                                                    className="origin-top-left pointer-events-none select-none bg-white"
+                                                    className="origin-top-left pointer-events-none select-none bg-white scale-[0.31] p-8"
                                                     style={{
                                                         width: '210mm',
                                                         height: '297mm',
-                                                        transform: 'scale(0.305)',
-                                                        padding: '32px'
                                                     }}
                                                 >
                                                     <ResumeLayoutProvider
@@ -179,26 +166,44 @@ export default function TemplateSelector({ currentTemplate, onSelect }: Template
                                                 </div>
                                             </div>
 
-                                            {/* Hover Overlay */}
-                                            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/0 to-indigo-600/0 group-hover:from-blue-600/5 group-hover:to-indigo-600/5 transition-all duration-200" />
-
-                                            {/* Checkmark for active */}
+                                            {/* Selection State */}
                                             {currentTemplate === t.id && (
-                                                <div className="absolute top-3 right-3 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-full p-2 shadow-lg shadow-blue-500/40 z-10 animate-in zoom-in duration-200">
-                                                    <Check size={16} strokeWidth={3} />
+                                                <div className="absolute inset-0 bg-blue-600/5 flex items-center justify-center">
+                                                    <div className="bg-blue-600 text-white rounded-full p-1.5 shadow-lg border-4 border-white">
+                                                        <Check size={16} strokeWidth={4} />
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="text-center px-2">
-                                            <h3 className={`font-bold text-base transition-colors ${currentTemplate === t.id ? 'text-blue-600' : 'text-slate-700 group-hover:text-blue-600'}`}>
-                                                {t.id}
-                                            </h3>
-                                            <p className="text-xs text-slate-500 mt-0.5">{t.description}</p>
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between">
+                                                <h3 className={`font-bold text-sm tracking-tight ${currentTemplate === t.id ? 'text-blue-600' : 'text-slate-900 font-extrabold'}`}>
+                                                    {t.id.toUpperCase()}
+                                                </h3>
+                                                <div className="flex gap-1">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" title="Active" />
+                                                </div>
+                                            </div>
+                                            <p className="text-[11px] font-medium text-slate-500">{t.description}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                        </div>
+
+                        {/* Internal Style Footer */}
+                        <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-slate-200">
+                            <div className="flex items-center gap-2 text-slate-500">
+                                <Info size={14} className="text-blue-500" />
+                                <span className="text-xs font-semibold uppercase tracking-tight">Active Template: <span className="text-slate-900">{currentTemplate}</span></span>
+                            </div>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="px-5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-lg transition-all uppercase tracking-widest"
+                            >
+                                Close
+                            </button>
                         </div>
                     </div>
                 </div>,
