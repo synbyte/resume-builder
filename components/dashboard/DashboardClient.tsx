@@ -4,8 +4,8 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import ResumeCard from '@/components/dashboard/ResumeCard';
 import TemplatePickerModal from '@/components/dashboard/TemplatePickerModal';
-import { Plus, FileText, Search, LayoutGrid, Settings } from 'lucide-react';
-import { createResume } from '@/lib/actions';
+import { Plus, FileText, Search, LayoutGrid, LogOut } from 'lucide-react';
+import { createResume, logout } from '@/lib/actions';
 import { useMemo } from 'react';
 
 interface Resume {
@@ -16,9 +16,10 @@ interface Resume {
 
 interface DashboardClientProps {
     resumes: Resume[];
+    userEmail: string;
 }
 
-export default function DashboardClient({ resumes }: DashboardClientProps) {
+export default function DashboardClient({ resumes, userEmail }: DashboardClientProps) {
     const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isPending, startTransition] = useTransition();
@@ -35,6 +36,10 @@ export default function DashboardClient({ resumes }: DashboardClientProps) {
             const id = await createResume('Untitled Resume', templateId);
             router.push(`/resume/${id}`);
         });
+    };
+
+    const handleLogout = async () => {
+        await logout();
     };
 
     return (
@@ -55,17 +60,21 @@ export default function DashboardClient({ resumes }: DashboardClientProps) {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors border border-transparent hover:border-slate-200">
-                                <Settings className="w-5 h-5" />
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center gap-2 p-2 px-3 text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all border border-transparent hover:border-red-100 font-medium text-sm"
+                            >
+                                <LogOut className="w-4 h-4" />
+                                <span className="hidden sm:inline">Logout</span>
                             </button>
                             <div className="h-6 w-[1px] bg-slate-200 mx-1" />
                             <div className="flex items-center gap-3 pl-1">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs ring-2 ring-white shadow-sm">
-                                    AD
+                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white shadow-sm">
+                                    {userEmail.charAt(0).toUpperCase() || 'U'}
                                 </div>
                                 <div className="hidden sm:block text-left">
-                                    <p className="text-[11px] font-bold text-slate-900 leading-none">Admin User</p>
-                                    <p className="text-[10px] text-slate-500 mt-1 leading-none uppercase tracking-wider">Internal Access</p>
+                                    <p className="text-[11px] font-bold text-slate-900 leading-none">{userEmail || 'User Session'}</p>
+                                    <p className="text-[10px] text-slate-500 mt-1 leading-none uppercase tracking-wider">Active Session</p>
                                 </div>
                             </div>
                         </div>

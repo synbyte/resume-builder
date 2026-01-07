@@ -4,24 +4,34 @@ import { prisma } from './prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { ResumeData } from './types';
+import { createClient } from './supabase/server';
 
-// Helper to get a default user ID for this internal tool.
-// In a real app, this would come from the session.
+// Helper to get the current authenticated user ID
 async function getUserId() {
-    // Try to find the first user in the DB.
-    const user = await prisma.users.findFirst();
-    if (!user) {
-        throw new Error('No users found in database. Cannot create resume.');
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) {
+        redirect('/login');
     }
     return user.id;
 }
 
+export async function getCurrentUser() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    return user;
+}
+
 export async function getResumes() {
     try {
+        const userId = await getUserId();
         return await prisma.resumes.findMany({
+            where: { user_id: userId },
             orderBy: { updated_at: 'desc' },
         });
     } catch (error) {
+        if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) throw error;
         console.error('Failed to fetch resumes:', error);
         throw new Error('Failed to load resumes. Please try again.');
     }
@@ -43,6 +53,7 @@ export async function createResume(title: string, template?: string) {
         revalidatePath('/dashboard');
         return resume.id;
     } catch (error) {
+        if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) throw error;
         console.error('Failed to create resume:', error);
         throw new Error('Failed to create resume. Please try again.');
     }
@@ -50,42 +61,80 @@ export async function createResume(title: string, template?: string) {
 
 export async function deleteResume(id: string) {
     try {
+        const userId = await getUserId();
         await prisma.resumes.delete({
-            where: { id },
+            where: {
+                id,
+                user_id: userId
+            },
         });
         revalidatePath('/dashboard');
     } catch (error) {
+        if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) throw error;
         console.error('Failed to delete resume:', error);
         throw new Error('Failed to delete resume. Please try again.');
     }
 }
 
 export async function renameResume(id: string, title: string) {
-    await prisma.resumes.update({
-        where: { id },
-        data: {
-            title,
-            updated_at: new Date(),
-        },
-    });
-    revalidatePath(`/resume/${id}`);
-    revalidatePath('/dashboard');
+    try {
+        const userId = await getUserId();
+        await prisma.resumes.update({
+            where: {
+                id,
+                user_id: userId
+            },
+            data: {
+                title,
+                updated_at: new Date(),
+            },
+        });
+        revalidatePath(`/resume/${id}`);
+        revalidatePath('/dashboard');
+    } catch (error) {
+        if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) throw error;
+        throw error;
+    }
 }
 
 export async function updateResume(id: string, data: ResumeData) {
-    await prisma.resumes.update({
-        where: { id },
-        data: {
-            content: data as any, // Prisma Json type needs explicit casting or is compatible
-            updated_at: new Date(),
-        },
-    });
-    revalidatePath(`/resume/${id}`);
+    try {
+        const userId = await getUserId();
+        await prisma.resumes.update({
+            where: {
+                id,
+                user_id: userId
+            },
+            data: {
+                content: data as any,
+                updated_at: new Date(),
+            },
+        });
+        revalidatePath(`/resume/${id}`);
+    } catch (error) {
+        if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) throw error;
+        throw error;
+    }
 }
 
 export async function getResume(id: string) {
-    const resume = await prisma.resumes.findUnique({
-        where: { id },
-    });
-    return resume;
+    try {
+        const userId = await getUserId();
+        const resume = await prisma.resumes.findFirst({
+            where: {
+                id,
+                user_id: userId
+            },
+        });
+        return resume;
+    } catch (error) {
+        if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) throw error;
+        throw error;
+    }
+}
+
+export async function logout() {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    redirect('/login');
 }
