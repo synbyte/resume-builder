@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "Professional Resume Builder",
 };
 
+import OnboardingProvider from "@/components/OnboardingProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +29,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <OnboardingProvider>
+          {children}
+        </OnboardingProvider>
       </body>
     </html>
   );

@@ -66,7 +66,7 @@ export default function SkillsForm({ items, onChange }: SkillsFormProps) {
                 </button>
             </div>
 
-            <div className="flex gap-2">
+            <div id="onboarding-skills" className="flex gap-2">
                 <input
                     type="text"
                     value={input}

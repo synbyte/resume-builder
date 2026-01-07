@@ -4,9 +4,10 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import ResumeCard from '@/components/dashboard/ResumeCard';
 import TemplatePickerModal from '@/components/dashboard/TemplatePickerModal';
-import { Plus, FileText, Search, LayoutGrid, LogOut } from 'lucide-react';
+import { Plus, FileText, Search, LayoutGrid, LogOut, HelpCircle } from 'lucide-react';
 import { createResume, logout } from '@/lib/actions';
 import { useMemo } from 'react';
+import { useNextStep } from 'nextstepjs';
 
 interface Resume {
     id: string;
@@ -24,6 +25,7 @@ export default function DashboardClient({ resumes, userEmail }: DashboardClientP
     const [searchQuery, setSearchQuery] = useState('');
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
+    const { startNextStep } = useNextStep();
 
     const filteredResumes = useMemo(() => {
         return resumes.filter((resume) =>
@@ -104,6 +106,7 @@ export default function DashboardClient({ resumes, userEmail }: DashboardClientP
                             />
                         </div>
                         <button
+                            id="onboarding-create-resume"
                             onClick={() => setIsTemplatePickerOpen(true)}
                             disabled={isPending}
                             className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-50 whitespace-nowrap"
@@ -170,7 +173,13 @@ export default function DashboardClient({ resumes, userEmail }: DashboardClientP
                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">System Operational</span>
                         </span>
                         <div className="h-4 w-[1px] bg-slate-200" />
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest cursor-help hover:text-slate-900">Documentation</span>
+                        <button
+                            onClick={() => startNextStep('dashboard')}
+                            className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest cursor-help hover:text-slate-900 transition-colors"
+                        >
+                            <HelpCircle className="w-3 h-3" />
+                            Documentation
+                        </button>
                     </div>
                 </div>
             </footer>

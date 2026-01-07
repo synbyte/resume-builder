@@ -95,6 +95,7 @@ export default function InteractiveItem({ id, children, className = '' }: Intera
 
     return (
         <div
+            id="onboarding-spacing"
             ref={itemRef}
             className={`group/item relative ${className} break-inside-avoid transition-all duration-200 hover:bg-gray-50/50 rounded-sm hover:ring-1 hover:ring-gray-200`}
             data-break-inside="avoid"

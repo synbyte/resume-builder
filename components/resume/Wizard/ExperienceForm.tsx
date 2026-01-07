@@ -116,6 +116,7 @@ function ExperienceItem({ item, onUpdate, onRemove }: { item: any, onUpdate: (f:
                         />
                         {/* Manual trigger if auto failed or wanted more */}
                         <button
+                            id="onboarding-ai-duties"
                             onClick={handleAutoGenerate}
                             disabled={isPending || !item.jobTitle}
                             className="flex items-center justify-center px-3 bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors disabled:opacity-50"

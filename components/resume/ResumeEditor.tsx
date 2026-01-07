@@ -375,6 +375,7 @@ export default function ResumeEditor({ id, initialData, title: initialTitle }: R
                     {/* Action Group: Configuration */}
                     <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200">
                         <button
+                            id="onboarding-design-settings"
                             onClick={() => setIsDesignPanelOpen(!isDesignPanelOpen)}
                             className={`flex items-center px-3 py-1.5 text-[11px] font-bold  border border-slate-200 uppercase tracking-wider rounded-md transition-all ${isDesignPanelOpen
                                 ? 'bg-slate-900 text-white shadow-md'
@@ -385,10 +386,12 @@ export default function ResumeEditor({ id, initialData, title: initialTitle }: R
                             Design Settings
                         </button>
                         <div className="h-4 w-px bg-slate-200" />
-                        <TemplateSelector
-                            currentTemplate={template}
-                            onSelect={handleTemplateChange}
-                        />
+                        <div id="onboarding-templates" className="h-full flex items-center">
+                            <TemplateSelector
+                                currentTemplate={template}
+                                onSelect={handleTemplateChange}
+                            />
+                        </div>
                     </div>
 
                     <div className="h-8 w-px bg-slate-200" />
@@ -476,15 +479,17 @@ export default function ResumeEditor({ id, initialData, title: initialTitle }: R
                 )}
             </div>
 
-            <AIAssistant
-                data={{
-                    ...data,
-                    designSettings,
-                    layout: currentLayout,
-                    selectedTemplate: template
-                }}
-                onUpdate={handleAIUpdate}
-            />
+            <div id="onboarding-ai-assistant">
+                <AIAssistant
+                    data={{
+                        ...data,
+                        designSettings,
+                        layout: currentLayout,
+                        selectedTemplate: template
+                    }}
+                    onUpdate={handleAIUpdate}
+                />
+            </div>
         </div>
     );
 }
